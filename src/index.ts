@@ -4,20 +4,48 @@ import { handler as apiHandler } from './api-lambda';
 import { handler as defaultHandler } from './default-lambda';
 import { handler as imageHandler } from './image-lambda';
 
-function apigwyEventTocfEvent(event: lambda.APIGatewayProxyEventV2): lambda.CloudFrontRequestEvent {
-  const apigwyRequest = {} as lambda.CloudFrontRequestEvent;
+function apigwyEventTocfEvent(
+  cfEventType: string,
+  event: lambda.APIGatewayProxyEventV2,
+): lambda.CloudFrontRequestEvent {
+  const cfEvent = {
+    Records: [{ cf: { config: { eventType: cfEventType }, request: {} } }],
+  } as lambda.CloudFrontRequestEvent;
+  const cfRequest = cfEvent.Records[0].cf.request;
 
-  // TODO: Copy in headers
+  // Copy in headers
+  for (const headerKey in event.headers) {
+    const headerValue = event.headers[headerKey] as string;
+    cfRequest.headers[headerKey] = [{ key: headerKey, value: headerValue }];
+  }
 
-  // TODO: Copy in URI
+  // Copy in URI (which is really just the path)
+  cfRequest.uri = event.rawPath;
 
-  // TODO: Copy in querystring
+  // Copy in querystring
+  cfRequest.querystring = event.rawQueryString;
 
-  // TODO: Copy in body
+  // Copy in the method
+  // @ts-ignore
+  cfRequest.method = event.requestContext.http.method;
+
+  // TODO: Set clientIp
+  //cfRequest.clientIp
+
+  // Copy in body
+  if (event.body !== undefined) {
+    // TODO: Check what the encoding actually is
+    cfRequest.body = {
+      action: 'read-only',
+      data: event.body,
+      encoding: 'text',
+      inputTruncated: false,
+    };
+  }
 
   // TODO: Fake the Origin object
 
-  return apigwyRequest;
+  return cfEvent;
 }
 
 export async function handler(
@@ -43,9 +71,6 @@ export async function handler(
   // response.body
   // response.headers
 
-  // Convert API Gateway Request to Origin Request
-  const cfEvent = apigwyEventTocfEvent(event);
-
   //
   // Call corresponding handler based on path
   //
@@ -65,6 +90,8 @@ export async function handler(
       body: '/_next/static/ or /static/ request received when not expected',
     };
   } else if (event.rawPath.indexOf('/api/') !== -1) {
+    // Convert API Gateway Request to Origin Request
+    const cfEvent = apigwyEventTocfEvent('origin-request', event);
     const cfRequestResponse = await apiHandler(cfEvent);
 
     // Translate the CF Response to API Gateway response
@@ -74,6 +101,8 @@ export async function handler(
       headers: cfRequestResponse.headers,
     } as lambda.APIGatewayProxyStructuredResultV2;
   } else if (event.rawPath.indexOf('/_next/image/') !== -1) {
+    // Convert API Gateway Request to Origin Request
+    const cfEvent = apigwyEventTocfEvent('origin-request', event);
     const cfRequestResponse = await imageHandler(cfEvent);
 
     // TODO: Proxy to S3 to get the image
@@ -86,6 +115,9 @@ export async function handler(
     } as lambda.APIGatewayProxyStructuredResultV2;
   } else {
     // [root]/_next/data/* and everything else goes to default
+
+    // Convert API Gateway Request to Origin Request
+    const cfEvent = apigwyEventTocfEvent('origin-request', event);
 
     // Call the request handler that modifies the request?
     const cfRequest = await defaultHandler(cfEvent);
