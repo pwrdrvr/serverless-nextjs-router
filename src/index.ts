@@ -9,7 +9,7 @@ function apigwyEventTocfEvent(
   event: lambda.APIGatewayProxyEventV2,
 ): lambda.CloudFrontRequestEvent {
   const cfEvent = {
-    Records: [{ cf: { config: { eventType: cfEventType }, request: {} } }],
+    Records: [{ cf: { config: { eventType: cfEventType }, request: { headers: {} } } }],
   } as lambda.CloudFrontRequestEvent;
   const cfRequest = cfEvent.Records[0].cf.request;
 
