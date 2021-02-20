@@ -1,0 +1,15 @@
+{
+  "files.exclude": {
+    "cdk.out": true,
+    // "**/node_modules": true
+  },
+  "editor.formatOnSave": true,
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "files.associations": {
+    "Dockerfile*": "dockerfile"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}
