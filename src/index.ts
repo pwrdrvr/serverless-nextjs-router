@@ -6,6 +6,18 @@ import { handler as imageHandler } from './image-lambda';
 
 import * as config from './config.json';
 
+const binaryMimeTypes = new Set<string>([
+  'application/octet-stream',
+  'image/bmp',
+  'image/jpeg',
+  'image/gif',
+  'image/vnd.microsoft.icon',
+  'image/png',
+  'image/svg+xml',
+  'image/tiff',
+  'image/webp',
+]);
+
 function apigwyEventTocfEvent(
   cfEventType: string,
   event: lambda.APIGatewayProxyEventV2,
@@ -129,6 +141,23 @@ export async function handler(
     // Convert API Gateway Request to Origin Request
     const cfEvent = apigwyEventTocfEvent('origin-request', event);
     const cfRequestResponse = await apiHandler(cfEvent);
+
+    // API Gateway expects specific binary mime types to be base64 encoded
+    // API Gateway expects everything else to not be encoded
+    if (
+      cfRequestResponse.headers !== undefined &&
+      cfRequestResponse.headers['content-type'] !== undefined &&
+      cfRequestResponse.body !== undefined
+    ) {
+      const types = cfRequestResponse.headers['content-type'][0].value.split(';');
+
+      if (!binaryMimeTypes.has(types[0])) {
+        const decodedBody = Buffer.from(cfRequestResponse.body as string, 'base64').toString(
+          'utf8',
+        );
+        cfRequestResponse.body = decodedBody;
+      }
+    }
 
     // Translate the CF Response to API Gateway response
     return cfResponseToapigwyResponse(cfRequestResponse);
