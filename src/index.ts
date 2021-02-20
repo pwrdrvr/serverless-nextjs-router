@@ -4,9 +4,7 @@ import { handler as apiHandler } from './api-lambda';
 import { handler as defaultHandler } from './default-lambda';
 import { handler as imageHandler } from './image-lambda';
 
-function apigwyRequestTocfRequest(
-  event: lambda.APIGatewayProxyEventV2,
-): lambda.CloudFrontRequestEvent {
+function apigwyEventTocfEvent(event: lambda.APIGatewayProxyEventV2): lambda.CloudFrontRequestEvent {
   const apigwyRequest = {} as lambda.CloudFrontRequestEvent;
 
   // TODO: Copy in headers
@@ -24,7 +22,7 @@ function apigwyRequestTocfRequest(
 
 export async function handler(
   event: lambda.APIGatewayProxyEventV2,
-  context: lambda.Context,
+  _context: lambda.Context,
 ): Promise<lambda.APIGatewayProxyStructuredResultV2> {
   // TODO: Find the items in CF Request that are referenced
   // request.headers
@@ -46,9 +44,11 @@ export async function handler(
   // response.headers
 
   // Convert API Gateway Request to Origin Request
-  const apigwyRequest = apigwyRequestTocfRequest(event);
+  const cfEvent = apigwyEventTocfEvent(event);
 
-  // TODO: Call corresponding handler based on path
+  //
+  // Call corresponding handler based on path
+  //
   // [root]/_next/static/* -> s3 direct
   // [root]/static/* -> s3 direct
   // [root]/api/* -> apiHandler
@@ -59,16 +59,46 @@ export async function handler(
   if (event.rawPath.indexOf('/_next/static/') !== -1 || event.rawPath.indexOf('/static/') !== -1) {
     // These should proxy to s3
     // In fact... these should probably never get here
-    // they should instead be routed to s3 by the microapp CF
+    // they should instead be routed to s3 directly by CloudFront
     return {
       statusCode: 500,
       body: '/_next/static/ or /static/ request received when not expected',
     };
+  } else if (event.rawPath.indexOf('/api/') !== -1) {
+    const cfRequestResponse = await apiHandler(cfEvent);
+
+    // Translate the CF Response to API Gateway response
+    return {
+      statusCode: parseInt(cfRequestResponse.status, 10),
+      body: cfRequestResponse.body,
+      headers: cfRequestResponse.headers,
+    } as lambda.APIGatewayProxyStructuredResultV2;
+  } else if (event.rawPath.indexOf('/_next/image/') !== -1) {
+    const cfRequestResponse = await imageHandler(cfEvent);
+
+    // TODO: Proxy to S3 to get the image
+
+    // Translate the CF Response to API Gateway response
+    return {
+      statusCode: parseInt(cfRequestResponse.status, 10),
+      body: cfRequestResponse.body,
+      headers: cfRequestResponse.headers,
+    } as lambda.APIGatewayProxyStructuredResultV2;
+  } else {
+    // [root]/_next/data/* and everything else goes to default
+
+    // Call the request handler that modifies the request?
+    const cfRequest = await defaultHandler(cfEvent);
+
+    // TODO: Does this ever need to proxy to s3?
+
+    // Call the response handler that writes the response?
+    const cfResponse = await defaultHandler(cfRequest as lambda.CloudFrontRequestEvent);
+
+    // TODO: Translate the CF Response to API Gateway response
+    return {
+      statusCode: 501,
+      body: 'default handler is not yet implemented',
+    } as lambda.APIGatewayProxyStructuredResultV2;
   }
-
-  // TODO: For DefaultHandler, call the response handler
-
-  // TODO: Translate the CF Response to API Gateway response
-
-  return {} as lambda.APIGatewayProxyStructuredResultV2;
 }
