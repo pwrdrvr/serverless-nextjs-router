@@ -111,7 +111,7 @@ export async function handler(
       body: cfRequestResponse.body,
       headers: cfRequestResponse.headers,
     } as lambda.APIGatewayProxyStructuredResultV2;
-  } else if (event.rawPath.indexOf('/_next/image/') !== -1) {
+  } else if (event.rawPath.indexOf('/_next/image') !== -1) {
     // Convert API Gateway Request to Origin Request
     const cfEvent = apigwyEventTocfEvent('origin-request', event);
     const cfRequestResponse = await imageHandler(cfEvent);
@@ -136,7 +136,7 @@ export async function handler(
     // TODO: Does this ever need to proxy to s3?
 
     // Call the response handler that writes the response?
-    const cfResponse = await defaultHandler(cfRequest as lambda.CloudFrontRequestEvent);
+    const cfResponse = await defaultHandler(cfEvent);
 
     // TODO: Translate the CF Response to API Gateway response
     return {
