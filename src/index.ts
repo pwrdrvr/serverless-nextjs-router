@@ -9,7 +9,7 @@ function apigwyEventTocfEvent(
   event: lambda.APIGatewayProxyEventV2,
 ): lambda.CloudFrontRequestEvent {
   const cfEvent = {
-    Records: [{ cf: { config: { eventType: cfEventType }, request: { headers: {} } } }],
+    Records: [{ cf: { config: { eventType: cfEventType }, request: { headers: {}, origin: {} } } }],
   } as lambda.CloudFrontRequestEvent;
   const cfRequest = cfEvent.Records[0].cf.request;
 
@@ -44,6 +44,17 @@ function apigwyEventTocfEvent(
   }
 
   // TODO: Fake the Origin object
+  if (cfRequest.origin !== undefined) {
+    cfRequest.origin.s3 = {
+      customHeaders: {
+        cat: [{ key: 'cat', value: 'dog' }],
+      },
+      domainName: '',
+      region: '',
+      path: '',
+      authMethod: 'origin-access-identity',
+    };
+  }
 
   return cfEvent;
 }
