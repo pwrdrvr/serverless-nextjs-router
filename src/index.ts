@@ -4,6 +4,8 @@ import { handler as apiHandler } from './api-lambda';
 import { handler as defaultHandler } from './default-lambda';
 import { handler as imageHandler } from './image-lambda';
 
+import * as config from './config.json';
+
 function apigwyEventTocfEvent(
   cfEventType: string,
   event: lambda.APIGatewayProxyEventV2,
@@ -49,14 +51,37 @@ function apigwyEventTocfEvent(
       customHeaders: {
         cat: [{ key: 'cat', value: 'dog' }],
       },
-      domainName: '',
-      region: '',
+      domainName: config.s3.domainName,
+      region: config.s3.region,
       path: '',
       authMethod: 'origin-access-identity',
     };
   }
 
   return cfEvent;
+}
+
+function cfResponseToapigwyResponse(
+  cfResponse: lambda.CloudFrontResultResponse,
+): lambda.APIGatewayProxyStructuredResultV2 {
+  const response = {
+    statusCode: parseInt(cfResponse.status, 10),
+    body: cfResponse.body,
+    headers: {},
+  } as lambda.APIGatewayProxyStructuredResultV2;
+
+  // Copy and translate the headers
+  for (const headerKey in cfResponse.headers) {
+    const header = cfResponse.headers[headerKey][0];
+    if (header.key !== undefined) {
+      // For some reason headers is declared to possibly be undefined
+      // even though it's statically set above...
+      // @ts-expect-error
+      response.headers[header.key] = header.value;
+    }
+  }
+
+  return response;
 }
 
 export async function handler(
@@ -106,11 +131,7 @@ export async function handler(
     const cfRequestResponse = await apiHandler(cfEvent);
 
     // Translate the CF Response to API Gateway response
-    return {
-      statusCode: parseInt(cfRequestResponse.status, 10),
-      body: cfRequestResponse.body,
-      headers: cfRequestResponse.headers,
-    } as lambda.APIGatewayProxyStructuredResultV2;
+    return cfResponseToapigwyResponse(cfRequestResponse);
   } else if (event.rawPath.indexOf('/_next/image') !== -1) {
     // Convert API Gateway Request to Origin Request
     const cfEvent = apigwyEventTocfEvent('origin-request', event);
@@ -119,11 +140,7 @@ export async function handler(
     // TODO: Proxy to S3 to get the image
 
     // Translate the CF Response to API Gateway response
-    return {
-      statusCode: parseInt(cfRequestResponse.status, 10),
-      body: cfRequestResponse.body,
-      headers: cfRequestResponse.headers,
-    } as lambda.APIGatewayProxyStructuredResultV2;
+    return cfResponseToapigwyResponse(cfRequestResponse);
   } else {
     // [root]/_next/data/* and everything else goes to default
 
@@ -141,7 +158,7 @@ export async function handler(
     // TODO: Translate the CF Response to API Gateway response
     return {
       statusCode: 501,
-      body: 'default handler is not yet implemented',
+      body: `default handler is not yet implemented: ${JSON.stringify(cfResponse)}`,
     } as lambda.APIGatewayProxyStructuredResultV2;
   }
 }
