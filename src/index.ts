@@ -1,10 +1,35 @@
 import * as lambda from 'aws-lambda';
-
-import { handler as apiHandler } from './api-lambda';
-import { handler as defaultHandler } from './default-lambda';
-import { handler as imageHandler } from './image-lambda';
+import type { Readable } from 'stream';
 
 import * as config from './config.json';
+
+//
+// BEGIN: https://www.gitmemory.com/issue/aws/aws-sdk-js-v3/1196/636589545
+//
+import { StandardRetryStrategy, defaultRetryDecider } from '@aws-sdk/middleware-retry';
+import { SdkError } from '@aws-sdk/smithy-client';
+
+const retryDecider = (err: SdkError & { code?: string }) => {
+  if (
+    'code' in err &&
+    (err.code === 'ECONNRESET' || err.code === 'EPIPE' || err.code === 'ETIMEDOUT')
+  ) {
+    return true;
+  } else {
+    return defaultRetryDecider(err);
+  }
+};
+// eslint-disable-next-line @typescript-eslint/require-await
+const retryStrategy = new StandardRetryStrategy(async () => 3, {
+  retryDecider,
+});
+export const defaultClientConfig = {
+  maxRetries: 3,
+  retryStrategy,
+};
+//
+// END: https://www.gitmemory.com/issue/aws/aws-sdk-js-v3/1196/636589545
+//
 
 const binaryMimeTypes = new Set<string>([
   'application/octet-stream',
@@ -18,10 +43,66 @@ const binaryMimeTypes = new Set<string>([
   'image/webp',
 ]);
 
-function apigwyEventTocfEvent(
+async function fetchFromS3(
+  request: lambda.CloudFrontRequest,
+): Promise<lambda.CloudFrontResultResponse> {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const { domainName, region } = request.origin!.s3!;
+  const bucketName = domainName.replace(`.s3.${region}.amazonaws.com`, '');
+  const response = {} as lambda.CloudFrontResultResponse;
+
+  // Lazily import only S3Client to reduce init times until actually needed
+  const { S3Client } = await import('@aws-sdk/client-s3/S3Client');
+
+  const s3 = new S3Client({
+    region: request.origin?.s3?.region,
+    maxAttempts: 3,
+    retryStrategy: retryStrategy,
+  });
+
+  // TODO: Get the file
+
+  // If route has fallback, return that page from S3, otherwise return 404 page
+  const s3Key = request.uri;
+
+  const { GetObjectCommand } = await import('@aws-sdk/client-s3/commands/GetObjectCommand');
+  // S3 Body is stream per: https://github.com/aws/aws-sdk-js-v3/issues/1096
+  const getStream = await import('get-stream');
+
+  const s3Params = {
+    Bucket: bucketName,
+    Key: s3Key,
+  };
+
+  const { Body, CacheControl } = await s3.send(new GetObjectCommand(s3Params));
+  const bodyString = await getStream.default(Body as Readable);
+
+  return {
+    status: '200',
+    statusDescription: 'OK',
+    headers: {
+      ...response.headers,
+      'content-type': [
+        {
+          key: 'Content-Type',
+          value: 'text/html',
+        },
+      ],
+      'cache-control': [
+        {
+          key: 'Cache-Control',
+          value: CacheControl ?? 'public, max-age=0, s-maxage=2678400, must-revalidate',
+        },
+      ],
+    },
+    body: bodyString,
+  };
+}
+
+function apigwyEventTocfRequestEvent(
   cfEventType: string,
   event: lambda.APIGatewayProxyEventV2,
-): lambda.CloudFrontRequestEvent {
+): lambda.CloudFrontEvent | lambda.CloudFrontRequestEvent {
   const cfEvent = {
     Records: [{ cf: { config: { eventType: cfEventType }, request: { headers: {}, origin: {} } } }],
   } as lambda.CloudFrontRequestEvent;
@@ -57,7 +138,7 @@ function apigwyEventTocfEvent(
     };
   }
 
-  // TODO: Fake the Origin object
+  // Fake the Origin object
   if (cfRequest.origin !== undefined) {
     cfRequest.origin.s3 = {
       customHeaders: {
@@ -66,7 +147,9 @@ function apigwyEventTocfEvent(
       domainName: config.s3.domainName,
       region: config.s3.region,
       path: '',
-      authMethod: 'origin-access-identity',
+      // CF uses OAI to access S3 from Lambda @ Edge
+      // But from Lambda we can just have IAM privs to get/put
+      authMethod: 'none',
     };
   }
 
@@ -139,8 +222,10 @@ export async function handler(
     };
   } else if (event.rawPath.indexOf('/api/') !== -1) {
     // Convert API Gateway Request to Origin Request
-    const cfEvent = apigwyEventTocfEvent('origin-request', event);
-    const cfRequestResponse = await apiHandler(cfEvent);
+    const cfEvent = apigwyEventTocfRequestEvent('origin-request', event);
+    const apiImport = './api-lambda';
+    const apiHandler = (await import(apiImport)).handler;
+    const cfRequestResponse = await apiHandler(cfEvent as lambda.CloudFrontRequestEvent);
 
     // API Gateway expects specific binary mime types to be base64 encoded
     // API Gateway expects everything else to not be encoded
@@ -163,10 +248,12 @@ export async function handler(
     return cfResponseToapigwyResponse(cfRequestResponse);
   } else if (event.rawPath.indexOf('/_next/image') !== -1) {
     // Convert API Gateway Request to Origin Request
-    const cfEvent = apigwyEventTocfEvent('origin-request', event);
-    const cfRequestResponse = await imageHandler(cfEvent);
+    const cfEvent = apigwyEventTocfRequestEvent('origin-request', event);
+    const imageImport = './image-lambda';
+    const imageHandler = (await import(imageImport)).handler;
+    const cfRequestResponse = await imageHandler(cfEvent as lambda.CloudFrontRequestEvent);
 
-    // TODO: Proxy to S3 to get the image
+    // TODO: Do we ever need to proxy to s3 or does imageHandler always do it?
 
     // Translate the CF Response to API Gateway response
     return cfResponseToapigwyResponse(cfRequestResponse);
@@ -174,20 +261,39 @@ export async function handler(
     // [root]/_next/data/* and everything else goes to default
 
     // Convert API Gateway Request to Origin Request
-    const cfEvent = apigwyEventTocfEvent('origin-request', event);
+    const cfEvent = apigwyEventTocfRequestEvent('origin-request', event);
 
     // Call the request handler that modifies the request?
-    const cfRequest = await defaultHandler(cfEvent);
+    const defaultImport = './default-lambda';
+    const defaultHandler = (await import(defaultImport)).handler;
+    const cfRequestResult = await defaultHandler(cfEvent as lambda.CloudFrontRequestEvent);
+    if ((cfRequestResult as lambda.CloudFrontResultResponse).status !== undefined) {
+      // The result is a response that we're supposed to send without calling the origin
+      const cfRequestResponse = cfRequestResult as lambda.CloudFrontResultResponse;
+      return cfResponseToapigwyResponse(cfRequestResponse);
+    }
 
-    // TODO: Does this ever need to proxy to s3?
+    console.log(`default - got response from request handler: ${JSON.stringify(cfRequestResult)}`);
 
-    // Call the response handler that writes the response?
-    const cfResponse = await defaultHandler(cfEvent);
+    // No response was generated; call the s3 origin then call the response handler
+    const cfRequestForOrigin = (cfRequestResult as unknown) as lambda.CloudFrontRequest;
 
-    // TODO: Translate the CF Response to API Gateway response
-    return {
-      statusCode: 501,
-      body: `default handler is not yet implemented: ${JSON.stringify(cfResponse)}`,
-    } as lambda.APIGatewayProxyStructuredResultV2;
+    // Fall through to S3
+    const s3Response = await fetchFromS3(cfRequestForOrigin);
+
+    // Change the event type to origin-response
+    const cfOriginResponseEvent = cfEvent as lambda.CloudFrontResponseEvent;
+    // @ts-expect-error
+    cfOriginResponseEvent.Records[0].cf.config.eventType = 'origin-response';
+    // Overwrite the request with the returned request
+    // @ts-expect-error
+    cfOriginResponseEvent.Records[0].cf.response = s3Response;
+
+    const cfResponse = (await defaultHandler(
+      cfOriginResponseEvent,
+    )) as lambda.CloudFrontResultResponse;
+
+    // Translate the CF Response to API Gateway response
+    return cfResponseToapigwyResponse(cfResponse);
   }
 }
