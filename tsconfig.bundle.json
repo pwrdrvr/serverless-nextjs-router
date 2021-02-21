@@ -9,8 +9,7 @@
     "sourceMap": false,
     "strict": true,
     "allowJs": true,
-    "resolveJsonModule": true,
-    "typeRoots": ["./node_modules/@types"]
+    "resolveJsonModule": true
   },
   "include": ["./src/index.ts"]
 }

@@ -7,6 +7,7 @@ export function cfResponseToapigwyResponse(
     statusCode: parseInt(cfResponse.status, 10),
     body: cfResponse.body,
     headers: {},
+    isBase64Encoded: cfResponse.bodyEncoding == 'base64',
   } as lambda.APIGatewayProxyStructuredResultV2;
 
   // Copy and translate the headers
@@ -15,6 +16,9 @@ export function cfResponseToapigwyResponse(
     if (header.key !== undefined) {
       // For some reason headers is declared to possibly be undefined
       // even though it's statically set above...
+      if (header.key === 'content-type') {
+        header.key = 'Content-Type';
+      }
       // @ts-expect-error
       response.headers[header.key] = header.value;
     }

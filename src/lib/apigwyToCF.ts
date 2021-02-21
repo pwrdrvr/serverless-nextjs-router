@@ -1,10 +1,10 @@
 import * as lambda from 'aws-lambda';
-import * as config from '../config.json';
 
 export function apigwyEventTocfRequestEvent(
   cfEventType: string,
   event: lambda.APIGatewayProxyEventV2,
-): lambda.CloudFrontEvent | lambda.CloudFrontRequestEvent {
+  config: any,
+): lambda.CloudFrontRequestEvent {
   const cfEvent = {
     Records: [{ cf: { config: { eventType: cfEventType }, request: { headers: {}, origin: {} } } }],
   } as lambda.CloudFrontRequestEvent;

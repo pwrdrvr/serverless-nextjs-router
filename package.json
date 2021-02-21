@@ -4,7 +4,7 @@
   "description": "Translates API Gateway messages to CloudFront Events for serverless-next.js",
   "main": "src/index.ts",
   "scripts": {
-    "build": "rollup --config  && tsc --build tsconfig.json",
+    "build": "rollup --config  && tsc -p tsconfig.build.json ",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint ./ --ext .ts --ext .tsx",
     "lint-and-fix": "eslint ./ --ext .ts --ext .tsx --fix"

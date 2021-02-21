@@ -49,7 +49,7 @@ export async function fetchFromS3(
   console.log(`sending request to s3: ${JSON.stringify(s3Params)}`);
 
   try {
-    const { Body, CacheControl } = await s3.send(new GetObjectCommand(s3Params));
+    const { Body, CacheControl, ContentType } = await s3.send(new GetObjectCommand(s3Params));
     const bodyString = await getStream.default(Body as Readable);
 
     return {
@@ -60,7 +60,7 @@ export async function fetchFromS3(
         'content-type': [
           {
             key: 'Content-Type',
-            value: 'text/html',
+            value: ContentType ?? 'text/html',
           },
         ],
         'cache-control': [
