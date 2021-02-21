@@ -1,5 +1,6 @@
 import * as lambda from 'aws-lambda';
 import type { Readable } from 'stream';
+import path from 'path';
 
 import * as config from './config.json';
 
@@ -37,7 +38,7 @@ async function fetchFromS3(
   // TODO: Get the file
 
   // If route has fallback, return that page from S3, otherwise return 404 page
-  const s3Key = request.uri;
+  const s3Key = path.join(request.origin?.s3?.path as string, request.uri).substr(1);
 
   const { GetObjectCommand } = await import('@aws-sdk/client-s3/commands/GetObjectCommand');
   // S3 Body is stream per: https://github.com/aws/aws-sdk-js-v3/issues/1096
@@ -48,29 +49,38 @@ async function fetchFromS3(
     Key: s3Key,
   };
 
-  const { Body, CacheControl } = await s3.send(new GetObjectCommand(s3Params));
-  const bodyString = await getStream.default(Body as Readable);
+  console.log(`sending request to s3: ${JSON.stringify(s3Params)}`);
 
-  return {
-    status: '200',
-    statusDescription: 'OK',
-    headers: {
-      ...response.headers,
-      'content-type': [
-        {
-          key: 'Content-Type',
-          value: 'text/html',
-        },
-      ],
-      'cache-control': [
-        {
-          key: 'Cache-Control',
-          value: CacheControl ?? 'public, max-age=0, s-maxage=2678400, must-revalidate',
-        },
-      ],
-    },
-    body: bodyString,
-  };
+  try {
+    const { Body, CacheControl } = await s3.send(new GetObjectCommand(s3Params));
+    const bodyString = await getStream.default(Body as Readable);
+
+    return {
+      status: '200',
+      statusDescription: 'OK',
+      headers: {
+        ...response.headers,
+        'content-type': [
+          {
+            key: 'Content-Type',
+            value: 'text/html',
+          },
+        ],
+        'cache-control': [
+          {
+            key: 'Cache-Control',
+            value: CacheControl ?? 'public, max-age=0, s-maxage=2678400, must-revalidate',
+          },
+        ],
+      },
+      body: bodyString,
+    };
+  } catch {
+    return {
+      status: '404',
+      statusDescription: 'Not Found',
+    };
+  }
 }
 
 function apigwyEventTocfRequestEvent(
@@ -149,6 +159,8 @@ function cfResponseToapigwyResponse(
       response.headers[header.key] = header.value;
     }
   }
+
+  console.log(`default - sending munged response to client: ${JSON.stringify(response)}`);
 
   return response;
 }
@@ -255,6 +267,8 @@ export async function handler(
     // Fall through to S3
     const s3Response = await fetchFromS3(cfRequestForOrigin);
 
+    console.log(`default - got response from s3: ${JSON.stringify(s3Response)}`);
+
     // Change the event type to origin-response
     const cfOriginResponseEvent = cfEvent as lambda.CloudFrontResponseEvent;
     // @ts-expect-error
@@ -266,6 +280,8 @@ export async function handler(
     const cfResponse = (await defaultHandler(
       cfOriginResponseEvent,
     )) as lambda.CloudFrontResultResponse;
+
+    console.log(`default - got response from response handler: ${JSON.stringify(cfResponse)}`);
 
     // Translate the CF Response to API Gateway response
     return cfResponseToapigwyResponse(cfResponse);
