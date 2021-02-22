@@ -24,7 +24,7 @@ export function cfResponseToapigwyResponse(
     }
   }
 
-  console.log(`default - sending munged response to client: ${JSON.stringify(response)}`);
+  //console.log(`default - sending munged response to client: ${JSON.stringify(response)}`);
 
   return response;
 }

@@ -46,7 +46,7 @@ export async function fetchFromS3(
     Key: s3Key,
   };
 
-  console.log(`sending request to s3: ${JSON.stringify(s3Params)}`);
+  //console.log(`sending request to s3: ${JSON.stringify(s3Params)}`);
 
   try {
     const { Body, CacheControl, ContentType } = await s3.send(new GetObjectCommand(s3Params));

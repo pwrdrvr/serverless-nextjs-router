@@ -27,6 +27,8 @@ export async function handler(
   // response.body
   // response.headers
 
+  console.log(`got event: ${JSON.stringify(event)}`);
+
   //
   // Call corresponding handler based on path
   //
@@ -52,23 +54,32 @@ export async function handler(
 
       decodeResponse(s3Response);
 
-      console.log(`static - got response from s3 handler: ${JSON.stringify(s3Response)}`);
+      //console.log(`static - got response from s3 handler: ${JSON.stringify(s3Response)}`);
 
       // Translate the CF Response to API Gateway response
       return cfResponseToapigwyResponse(s3Response);
     } else if (event.rawPath.indexOf('/api/') !== -1) {
+      // console.log('api-route');
       // Convert API Gateway Request to Origin Request
       const cfEvent = apigwyEventTocfRequestEvent('origin-request', event, config);
+      // console.log(`api-route - cfEvent: ${JSON.stringify(cfEvent)}`);
       const apiImport = './api-lambda';
-      const apiHandler = (await import(apiImport)).handler;
-      const cfRequestResponse = await apiHandler(cfEvent as lambda.CloudFrontRequestEvent);
+      const apiHandler = await import(apiImport);
+      // console.log(`api-route - handler imported`);
+      const cfRequestResponse = await apiHandler.handler(cfEvent as lambda.CloudFrontRequestEvent);
+      // console.log(`api-route - cfRequestResponse: ${JSON.stringify(cfRequestResponse)}`);
 
       // API Gateway expects specific binary mime types to be base64 encoded
       // API Gateway expects everything else to not be encoded
       decodeResponse(cfRequestResponse);
+      console.log(
+        `api-route - decodeResponse(cfRequestResponse): ${JSON.stringify(cfRequestResponse)}`,
+      );
 
       // Translate the CF Response to API Gateway response
-      return cfResponseToapigwyResponse(cfRequestResponse);
+      const response = cfResponseToapigwyResponse(cfRequestResponse);
+      console.log(`api-route - response: ${JSON.stringify(response)}`);
+      return response;
     } else if (event.rawPath.indexOf('/_next/image') !== -1) {
       // return {
       //   statusCode: 500,
@@ -88,7 +99,7 @@ export async function handler(
       // TODO: Do we ever need to proxy to s3 or does imageHandler always do it?
       if (cfRequestResponse.status === undefined) {
         // The result is a response that we're supposed to send without calling the origin
-        console.log('router - image handler did not return a response');
+        //console.log('router - image handler did not return a response');
         throw new Error('router - no response from image handler');
       }
 
@@ -110,9 +121,9 @@ export async function handler(
         return cfResponseToapigwyResponse(cfRequestResponse);
       }
 
-      console.log(
-        `default - got response from request handler: ${JSON.stringify(cfRequestResult)}`,
-      );
+      //console.log(
+      //   `default - got response from request handler: ${JSON.stringify(cfRequestResult)}`,
+      // );
 
       // No response was generated; call the s3 origin then call the response handler
       const cfRequestForOrigin = (cfRequestResult as unknown) as lambda.CloudFrontRequest;
@@ -120,7 +131,7 @@ export async function handler(
       // Fall through to S3
       const s3Response = await fetchFromS3(cfRequestForOrigin);
 
-      console.log(`default - got response from s3: ${JSON.stringify(s3Response)}`);
+      //console.log(`default - got response from s3: ${JSON.stringify(s3Response)}`);
 
       // Change the event type to origin-response
       const cfOriginResponseEvent = cfEvent as lambda.CloudFrontResponseEvent;
@@ -136,7 +147,7 @@ export async function handler(
 
       decodeResponse(cfResponse);
 
-      console.log(`default - got response from response handler: ${JSON.stringify(cfResponse)}`);
+      //console.log(`default - got response from response handler: ${JSON.stringify(cfResponse)}`);
 
       // Translate the CF Response to API Gateway response
       return cfResponseToapigwyResponse(cfResponse);
@@ -146,6 +157,8 @@ export async function handler(
     const cfResponse = {
       status: '500',
       statusDescription: 'borked',
+      body: JSON.stringify(error),
+      bodyEncoding: 'text',
     } as lambda.CloudFrontResultResponse;
     return cfResponseToapigwyResponse(cfResponse);
   }
@@ -163,6 +176,7 @@ function decodeResponse(cfRequestResponse: lambda.CloudFrontResultResponse) {
     if (!binaryMimeTypes.has(types[0])) {
       const decodedBody = Buffer.from(cfRequestResponse.body as string, 'base64').toString('utf8');
       cfRequestResponse.body = decodedBody;
+      cfRequestResponse.bodyEncoding = 'text';
     }
   }
 }
