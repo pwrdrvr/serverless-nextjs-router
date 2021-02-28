@@ -153,14 +153,24 @@ export async function handler(
       return cfResponseToapigwyResponse(cfResponse);
     }
   } catch (error) {
-    console.log(`caught exception: ${JSON.stringify(error)}`);
-    const cfResponse = {
-      status: '500',
-      statusDescription: 'borked',
-      body: JSON.stringify(error),
-      bodyEncoding: 'text',
-    } as lambda.CloudFrontResultResponse;
-    return cfResponseToapigwyResponse(cfResponse);
+    try {
+      console.log(`router - caught exception: ${error.message}`);
+      const cfResponse = {
+        status: '599',
+        statusDescription: 'borked',
+        body: error.message,
+        bodyEncoding: 'text',
+      } as lambda.CloudFrontResultResponse;
+      return cfResponseToapigwyResponse(cfResponse);
+    } catch {
+      console.log('router - caught exception responding to exception');
+      const cfResponse = {
+        status: '599',
+        body: 'router - caught exception responding to exception',
+        bodyEncoding: 'text',
+      } as lambda.CloudFrontResultResponse;
+      return cfResponseToapigwyResponse(cfResponse);
+    }
   }
 }
 
