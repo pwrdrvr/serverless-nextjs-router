@@ -1,5 +1,5 @@
 {
-  "name": "serverless-nextjs-router",
+  "name": "@pwrdrvr/serverless-nextjs-router",
   "version": "1.0.0",
   "description": "Translates API Gateway messages to CloudFront Events for serverless-next.js",
   "main": "src/index.ts",
@@ -16,6 +16,7 @@
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^11.2.0",
     "@types/aws-lambda": "^8.10.72",
+    "@types/lambda-log": "^2.2.0",
     "@types/node": "^14.14.31",
     "@typescript-eslint/eslint-plugin": "^4.15.1",
     "@typescript-eslint/parser": "^4.15.1",
@@ -33,6 +34,7 @@
     "@aws-sdk/client-s3": "^3.6.0",
     "@aws-sdk/middleware-retry": "^3.6.0",
     "@aws-sdk/smithy-client": "^3.5.0",
-    "get-stream": "^6.0.0"
+    "get-stream": "^6.0.0",
+    "lambda-log": "^2.4.0"
   }
 }
