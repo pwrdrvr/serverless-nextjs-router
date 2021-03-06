@@ -32,8 +32,6 @@ export async function fetchFromS3(
     retryStrategy: retryStrategy,
   });
 
-  // TODO: Get the file
-
   // If route has fallback, return that page from S3, otherwise return 404 page
   const s3Key = path.join(request.origin?.s3?.path as string, request.uri).substr(1);
 
@@ -51,6 +49,9 @@ export async function fetchFromS3(
   try {
     const { Body, CacheControl, ContentType } = await s3.send(new GetObjectCommand(s3Params));
     const bodyString = await getStream.default(Body as Readable);
+    const responseContentType = ContentType ?? 'text/html';
+
+    const responseEncoding = binaryMimeTypes.has(responseContentType) ? 'base64' : 'text';
 
     return {
       status: '200',
@@ -60,7 +61,7 @@ export async function fetchFromS3(
         'content-type': [
           {
             key: 'Content-Type',
-            value: ContentType ?? 'text/html',
+            value: responseContentType,
           },
         ],
         'cache-control': [
@@ -71,6 +72,7 @@ export async function fetchFromS3(
         ],
       },
       body: bodyString,
+      bodyEncoding: responseEncoding,
     };
   } catch {
     return {
