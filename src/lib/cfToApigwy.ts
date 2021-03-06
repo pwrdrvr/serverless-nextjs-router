@@ -7,7 +7,7 @@ export function cfResponseToapigwyResponse(
     statusCode: parseInt(cfResponse.status, 10),
     body: cfResponse.body,
     headers: {},
-    isBase64Encoded: cfResponse.bodyEncoding == 'base64',
+    isBase64Encoded: cfResponse.bodyEncoding === 'base64',
   } as lambda.APIGatewayProxyStructuredResultV2;
 
   // Copy and translate the headers

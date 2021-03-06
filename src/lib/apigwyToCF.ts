@@ -26,15 +26,16 @@ export function apigwyEventTocfRequestEvent(
   // @ts-ignore
   cfRequest.method = event.requestContext.http.method;
 
-  // TODO: Set clientIp
-  //cfRequest.clientIp
+  // Set clientIp
+  // @ts-ignore
+  cfRequest.clientIp = event.requestContext.http.sourceIp;
+
   // Copy in body
   if (event.body !== undefined) {
-    // TODO: Check what the encoding actually is
     cfRequest.body = {
       action: 'read-only',
       data: event.body,
-      encoding: 'text',
+      encoding: event.isBase64Encoded ? 'base64' : 'text',
       inputTruncated: false,
     };
   }
