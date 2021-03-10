@@ -1,15 +1,21 @@
 {
   "name": "@pwrdrvr/serverless-nextjs-router",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "description": "Translates API Gateway messages to CloudFront Events for serverless-next.js",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "scripts": {
     "build": "rollup --config  && tsc -p tsconfig.build.json ",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint ./ --ext .ts --ext .tsx",
     "lint-and-fix": "eslint ./ --ext .ts --ext .tsx --fix"
   },
-  "author": "",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/pwrdrvr"
+  },
+  "repository": {
+    "url": "git://github.com/pwrdrvr/serverless-nextjs-router.git"
+  },
+  "author": "PwrDrvr LLC",
   "license": "ISC",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.1.0",
