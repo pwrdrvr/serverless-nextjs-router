@@ -1,4 +1,4 @@
-import * as lambda from 'aws-lambda';
+import type * as lambda from 'aws-lambda';
 
 export function cfResponseToapigwyResponse(
   cfResponse: lambda.CloudFrontResultResponse,

@@ -1,6 +1,6 @@
 {
   "name": "@pwrdrvr/serverless-nextjs-router",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Translates API Gateway messages to CloudFront Events for serverless-next.js",
   "main": "dist/index.js",
   "scripts": {

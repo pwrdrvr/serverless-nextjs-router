@@ -15,3 +15,20 @@ However, some choices made by the `serverless-next.js` project may be less than 
     - Lambda billing is in 1 ms increments as of Dec 2020: https://aws.amazon.com/about-aws/whats-new/2020/12/aws-lambda-changes-duration-billing-granularity-from-100ms-to-1ms/
     - Lambda @ Edge pricing is $0.00005001 / GB-Sec while Lambda pricing is $0.0000166667 / GB-Sec - Lambda @ Edge is 200% (3x) more expensive than Lambda @ Origin (or, Lambda @ Origin is 66% less expensive than Lambda @ Edge)
     - Added together, Lambda @ Edge for origin calls to DynamoDB would be 450x more expensive than letting CloudFront call back to the origin and hit a Lambda @ Origin which then hits DynamoDB
+
+# Publishing to GitHub Packages
+
+## Login to GitHub NPM
+
+```
+npm login --scope=@pwrdrvr --registry=https://npm.pkg.github.com
+
+# Supply: github username
+# GitHub Personal Access Token
+# Public NPM Email
+```
+
+## Publish New Version
+
+- Bump version number in package.json
+- `npm publish`

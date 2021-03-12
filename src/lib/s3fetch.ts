@@ -1,4 +1,4 @@
-import * as lambda from 'aws-lambda';
+import type * as lambda from 'aws-lambda';
 import type { Readable } from 'stream';
 import path from 'path';
 import { retryStrategy } from './retryStrategy';

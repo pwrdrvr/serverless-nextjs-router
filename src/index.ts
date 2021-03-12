@@ -5,6 +5,11 @@ import { cfResponseToapigwyResponse } from './lib/cfToApigwy';
 import { apigwyEventTocfRequestEvent } from './lib/apigwyToCF';
 import { binaryMimeTypes, fetchFromS3 } from './lib/s3fetch';
 
+export type routerState = {
+  event: lambda.APIGatewayProxyEventV2;
+  context: lambda.Context;
+};
+
 const localTesting = process.env.DEBUG ? true : false;
 
 let log: LambdaLog;
@@ -31,6 +36,15 @@ export async function handler(
   // response.statusDescription
   // response.body
   // response.headers
+
+  // Expose the state for use down the chain
+  // Yeah, yeah, bad design, etc., but Lambda only runs
+  // one request at a time
+  // @ts-expect-error
+  global.RouterState = {
+    event,
+    context,
+  } as routerState;
 
   // Change the logger on each request
   log = new LambdaLog({

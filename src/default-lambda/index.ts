@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import * as lambda from 'aws-lambda';
+import type * as lambda from 'aws-lambda';
 
 // Note: This is just a signature to match the functions dropped in
 // .serverless-nextjs/default-lamba/index.js and to be
