@@ -7,8 +7,6 @@ import { terser } from 'rollup-plugin-terser';
 
 const LOCAL_EXTERNALS = ['./config.json'];
 const NPM_EXTERNALS = [
-  'aws-lambda',
-  'aws-sdk/clients/s3',
   './src/api-lambda/index.ts',
   './src/default-lambda/index.ts',
   './src/image-lambda/index.ts',

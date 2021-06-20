@@ -4,6 +4,7 @@
   "description": "Translates API Gateway messages to CloudFront Events for serverless-next.js",
   "main": "dist/index.js",
   "scripts": {
+    "cloc": "cloc --exclude-dir=node_modules,.storybook,.serverless,.serverless_nextjs,.next,storybook-static,dist --exclude-ext=json .",
     "build": "rollup --config  && tsc -p tsconfig.build.json ",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint ./ --ext .ts --ext .tsx",
@@ -16,7 +17,7 @@
     "url": "git://github.com/pwrdrvr/serverless-nextjs-router.git"
   },
   "author": "PwrDrvr LLC",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.1.0",
     "@rollup/plugin-json": "^4.1.0",
