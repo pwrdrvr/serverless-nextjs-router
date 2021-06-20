@@ -1,6 +1,6 @@
 # Overview
 
-The (serverless-next.js)[https://github.com/serverless-nextjs/serverless-next.js] project is fantastic in that it allows deploying Next.js applications using Lambda functions.
+The [serverless-next.js](https://github.com/serverless-nextjs/serverless-next.js) project is fantastic in that it allows deploying Next.js applications using Lambda functions.
 
 However, some choices made by the `serverless-next.js` project may be less than ideal for some consuming projects, such as:
 
