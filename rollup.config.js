@@ -30,10 +30,10 @@ const generateConfig = (input) => ({
     }),
     input.minify
       ? terser({
-          compress: true,
-          mangle: true,
-          output: { comments: false }, // Remove all comments, which is fine as the handler code is not distributed.
-        })
+        compress: true,
+        mangle: true,
+        output: { comments: false }, // Remove all comments, which is fine as the handler code is not distributed.
+      })
       : undefined,
   ],
   external: [...NPM_EXTERNALS, ...LOCAL_EXTERNALS],
