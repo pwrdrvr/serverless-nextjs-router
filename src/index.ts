@@ -1,9 +1,9 @@
 import type * as lambda from 'aws-lambda';
 import { LambdaLog, LogMessage } from 'lambda-log';
-import * as config from './config.json';
 import { cfResponseToapigwyResponse } from './lib/cfToApigwy';
 import { apigwyEventTocfRequestEvent } from './lib/apigwyToCF';
 import { binaryMimeTypes, fetchFromS3 } from './lib/s3fetch';
+import { Config } from './lib/config';
 
 export type routerState = {
   event: lambda.APIGatewayProxyEventV2;
@@ -13,6 +13,7 @@ export type routerState = {
 const localTesting = process.env.DEBUG ? true : false;
 
 let log: LambdaLog;
+const config = Config.instance;
 
 export async function handler(
   event: lambda.APIGatewayProxyEventV2,
@@ -85,7 +86,7 @@ export async function handler(
 
       // Fall through to S3
       const cfEvent = apigwyEventTocfRequestEvent('origin-request', event, config);
-      const s3Response = await fetchFromS3(cfEvent.Records[0].cf.request);
+      const s3Response = await fetchFromS3(cfEvent.Records[0].cf.request, config);
 
       decodeResponse(s3Response);
 
@@ -168,7 +169,7 @@ export async function handler(
       const cfRequestForOrigin = (cfRequestResult as unknown) as lambda.CloudFrontRequest;
 
       // Fall through to S3
-      const s3Response = await fetchFromS3(cfRequestForOrigin);
+      const s3Response = await fetchFromS3(cfRequestForOrigin, config);
 
       log.debug('got response from s3', { s3Response });
 

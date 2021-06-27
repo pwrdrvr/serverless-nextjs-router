@@ -2,6 +2,8 @@ import type * as lambda from 'aws-lambda';
 import type { Readable } from 'stream';
 import path from 'path';
 import { retryStrategy } from './retryStrategy';
+import { S3Client } from '@aws-sdk/client-s3/S3Client';
+import { IConfig } from './config';
 
 export const binaryMimeTypes = new Set<string>([
   'application/octet-stream',
@@ -15,22 +17,26 @@ export const binaryMimeTypes = new Set<string>([
   'image/webp',
 ]);
 
+// The parameters don't change
+let s3: S3Client;
+
 export async function fetchFromS3(
   request: lambda.CloudFrontRequest,
+  config: IConfig,
 ): Promise<lambda.CloudFrontResultResponse> {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const { domainName, region } = request.origin!.s3!;
-  const bucketName = domainName.replace(`.s3.${region}.amazonaws.com`, '');
+  const bucketName = config.s3BucketName;
   const response = {} as lambda.CloudFrontResultResponse;
 
-  // Lazily import only S3Client to reduce init times until actually needed
-  const { S3Client } = await import('@aws-sdk/client-s3/S3Client');
-
-  const s3 = new S3Client({
-    region: request.origin?.s3?.region,
-    maxAttempts: 3,
-    retryStrategy: retryStrategy,
-  });
+  // Init client once as region doesn't change
+  if (s3 === undefined) {
+    s3 = new S3Client({
+      // AWS_REGION is set automatically for the Lambda @ Origin function
+      region: process.env.AWS_REGION,
+      maxAttempts: 3,
+      retryStrategy: retryStrategy,
+    });
+  }
 
   // If route has fallback, return that page from S3, otherwise return 404 page
   const s3Key = path.join(request.origin?.s3?.path as string, request.uri).substr(1);
