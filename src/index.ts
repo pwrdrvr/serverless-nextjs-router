@@ -1,9 +1,10 @@
+// eslint-disable-next-line import/no-unresolved
 import type * as lambda from 'aws-lambda';
 import { LambdaLog, LogMessage } from 'lambda-log';
-import { cfResponseToapigwyResponse } from './lib/cfToApigwy';
 import { apigwyEventTocfRequestEvent } from './lib/apigwyToCF';
-import { binaryMimeTypes, fetchFromS3 } from './lib/s3fetch';
+import { cfResponseToapigwyResponse } from './lib/cfToApigwy';
 import { Config } from './lib/config';
+import { binaryMimeTypes, fetchFromS3 } from './lib/s3fetch';
 
 export type routerState = {
   event: lambda.APIGatewayProxyEventV2;
@@ -166,7 +167,7 @@ export async function handler(
       log.info('falling through to s3');
 
       // No response was generated; call the s3 origin then call the response handler
-      const cfRequestForOrigin = (cfRequestResult as unknown) as lambda.CloudFrontRequest;
+      const cfRequestForOrigin = cfRequestResult as unknown as lambda.CloudFrontRequest;
 
       // Fall through to S3
       const s3Response = await fetchFromS3(cfRequestForOrigin, config);
@@ -202,9 +203,9 @@ export async function handler(
         bodyEncoding: 'text',
       } as lambda.CloudFrontResultResponse;
       return cfResponseToapigwyResponse(cfResponse);
-    } catch (error) {
+    } catch (error2) {
       log.error('caught exception responding to exception');
-      log.error(error);
+      log.error(error2);
       const cfResponse = {
         status: '599',
         body: 'router - caught exception responding to exception',

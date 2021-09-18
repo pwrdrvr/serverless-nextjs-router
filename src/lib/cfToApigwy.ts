@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-unresolved
 import type * as lambda from 'aws-lambda';
 
 export function cfResponseToapigwyResponse(

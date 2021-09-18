@@ -15,7 +15,7 @@ const NPM_EXTERNALS = [
 const generateConfig = (input) => ({
   input: `./src/${input.filename}.ts`,
   output: {
-    file: `./dist/${input.filename}${input.minify ? '.min' : ''}.js`,
+    file: `./lib/${input.filename}${input.minify ? '.min' : ''}.js`,
     format: 'cjs',
   },
   plugins: [
