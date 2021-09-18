@@ -14,6 +14,9 @@ const project = new TypeScriptProject({
   npmRegistryUrl: 'https://npm.pkg.github.com',
   npmTokenSecret: 'NPM_TOKEN',
   releaseToNpm: true,
+  description:
+    'Enables running `serverless-next.js` applications using Origin Lamdbda functions for reduced cost and improved speed.',
+  keywords: ['serverless', 'next.js', 'lamda', 'aws', 'serverless-next.js'],
 
   eslintOptions: {
     prettier: true,
