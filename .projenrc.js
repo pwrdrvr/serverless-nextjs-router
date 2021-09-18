@@ -11,8 +11,10 @@ const project = new TypeScriptProject({
   npmAccess: NpmAccess.PUBLIC,
   packageManager: NodePackageManager.NPM,
   minNodeVersion: '12.0.0',
-  npmRegistryUrl: 'https://npm.pkg.github.com',
-  npmTokenSecret: 'NPM_TOKEN',
+  // Settings for GitHub Packages publish:
+  // npmRegistryUrl: 'https://npm.pkg.github.com',
+  // npmTokenSecret: 'NPM_TOKEN',
+  npmTokenSecret: 'NPMJSORG_PUBLISH_TOKEN',
   releaseToNpm: true,
   description:
     'Enables running `serverless-next.js` applications using Origin Lamdbda functions for reduced cost and improved speed.',
