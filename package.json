@@ -15,6 +15,7 @@
     "bump": "npx projen bump",
     "unbump": "npx projen unbump",
     "publish:github": "npx projen publish:github",
+    "publish:npm": "npx projen publish:npm",
     "upgrade": "npx projen upgrade",
     "upgrade-projen": "npx projen upgrade-projen",
     "default": "npx projen default",
@@ -73,6 +74,7 @@
   "main": "lib/index.js",
   "license": "MIT",
   "publishConfig": {
+    "registry": "https://npm.pkg.github.com/",
     "access": "public"
   },
   "version": "0.0.0",

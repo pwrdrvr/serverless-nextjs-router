@@ -11,6 +11,9 @@ const project = new TypeScriptProject({
   npmAccess: NpmAccess.PUBLIC,
   packageManager: NodePackageManager.NPM,
   minNodeVersion: '12.0.0',
+  npmRegistryUrl: 'https://npm.pkg.github.com',
+  npmTokenSecret: 'NPM_TOKEN',
+  releaseToNpm: true,
 
   eslintOptions: {
     prettier: true,
