@@ -1,5 +1,6 @@
 {
   "name": "@pwrdrvr/serverless-nextjs-router",
+  "description": "Enables running `serverless-next.js` applications using Origin Lamdbda functions for reduced cost and improved speed.",
   "repository": {
     "type": "git",
     "url": "git://github.com/pwrdrvr/serverless-nextjs-router.git"
@@ -68,6 +69,13 @@
     "lambda-log": "^2.4.0"
   },
   "bundledDependencies": [],
+  "keywords": [
+    "aws",
+    "lamda",
+    "next.js",
+    "serverless",
+    "serverless-next.js"
+  ],
   "engines": {
     "node": ">= 12.0.0"
   },
