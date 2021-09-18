@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+// eslint-disable-next-line import/no-unresolved
 import type * as lambda from 'aws-lambda';
 
 // Note: This is just a signature to match the functions dropped in

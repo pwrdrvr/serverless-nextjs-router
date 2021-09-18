@@ -13,6 +13,10 @@ export class Config implements IConfig {
     return Config._instance;
   }
 
+  private _region: string;
+  private _s3BucketName: string;
+  private _s3DomainName: string;
+
   private constructor() {
     this._region = process.env.AWS_REGION || 'MicroApps';
     this._s3BucketName = process.env.S3BUCKETNAME || 'MicroApps';
@@ -33,17 +37,14 @@ export class Config implements IConfig {
     return 'dev';
   }
 
-  private _region: string;
   public get region(): string {
     return this._region;
   }
 
-  private _s3BucketName: string;
   public get s3BucketName(): string {
     return this._s3BucketName;
   }
 
-  private _s3DomainName: string;
   public get s3DomainName(): string {
     return this._s3DomainName;
   }

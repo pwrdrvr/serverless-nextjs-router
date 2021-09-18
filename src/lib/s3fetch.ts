@@ -1,9 +1,10 @@
-import type * as lambda from 'aws-lambda';
+import * as path from 'path';
 import type { Readable } from 'stream';
-import path from 'path';
-import { retryStrategy } from './retryStrategy';
-import { S3Client } from '@aws-sdk/client-s3/S3Client';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+// eslint-disable-next-line import/no-unresolved
+import type * as lambda from 'aws-lambda';
 import { IConfig } from './config';
+import { retryStrategy } from './retryStrategy';
 
 export const binaryMimeTypes = new Set<string>([
   'application/octet-stream',
@@ -41,7 +42,7 @@ export async function fetchFromS3(
   // If route has fallback, return that page from S3, otherwise return 404 page
   const s3Key = path.join(request.origin?.s3?.path as string, request.uri).substr(1);
 
-  const { GetObjectCommand } = await import('@aws-sdk/client-s3/commands/GetObjectCommand');
+  //const { GetObjectCommand } = await import('@aws-sdk/client-s3/commands/GetObjectCommand');
   // S3 Body is stream per: https://github.com/aws/aws-sdk-js-v3/issues/1096
   const getStream = await import('get-stream');
 
