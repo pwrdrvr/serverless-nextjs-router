@@ -10,7 +10,7 @@ const project = new TypeScriptProject({
   name: '@pwrdrvr/serverless-nextjs-router',
   npmAccess: NpmAccess.PUBLIC,
   packageManager: NodePackageManager.NPM,
-  minNodeVersion: '14.0.0',
+  minNodeVersion: '12.0.0',
 
   eslintOptions: {
     prettier: true,
@@ -69,8 +69,6 @@ const project = new TypeScriptProject({
 
 // We have to override the default build as we need a very specific rollup with deps
 // and WITHOUT the underlying app .js files from serverless-next.js
-project.compileTask.exec(
-  'rm -rf lib/ && rollup --config  && tsc -p tsconfig.build.json',
-);
+project.compileTask.exec('rm -rf lib/ && rollup --config  && tsc -p tsconfig.build.json');
 
 project.synth();
