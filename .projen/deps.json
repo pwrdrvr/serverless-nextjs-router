@@ -43,6 +43,11 @@
       "type": "build"
     },
     {
+      "name": "aws-sdk-client-mock",
+      "version": "^0.5.6",
+      "type": "build"
+    },
+    {
       "name": "eslint",
       "type": "build"
     },
