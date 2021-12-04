@@ -4,7 +4,6 @@ import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 // eslint-disable-next-line import/no-unresolved
 import type * as lambda from 'aws-lambda';
 import { IConfig } from './config';
-import { retryStrategy } from './retryStrategy';
 
 export const binaryMimeTypes = new Set<string>([
   'application/octet-stream',
@@ -34,8 +33,7 @@ export async function fetchFromS3(
     s3 = new S3Client({
       // AWS_REGION is set automatically for the Lambda @ Origin function
       region: process.env.AWS_REGION,
-      maxAttempts: 3,
-      retryStrategy: retryStrategy,
+      maxAttempts: 8,
     });
   }
 

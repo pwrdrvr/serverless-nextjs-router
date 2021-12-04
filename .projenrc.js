@@ -51,13 +51,7 @@ const project = new TypeScriptProject({
     'rollup-plugin-typescript2@^0.30.0',
   ],
 
-  deps: [
-    '@aws-sdk/client-s3@^3.32.0',
-    '@aws-sdk/middleware-retry@^3.32.0',
-    '@aws-sdk/smithy-client@^3.32.0',
-    'get-stream@^6.0.0',
-    'lambda-log@^2.4.0',
-  ],
+  deps: ['@aws-sdk/client-s3@^3.32.0', 'get-stream@^6.0.0', 'lambda-log@^2.4.0'],
 
   // scripts: {
   //   'compile': 'rollup --config  && tsc -p tsconfig.build.json',
