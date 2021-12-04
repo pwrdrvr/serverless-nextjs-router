@@ -24,7 +24,9 @@ const generateConfig = (input) => ({
     externals({
       exclude: '@sls-next/next-aws-cloudfront',
     }),
-    nodeResolve(),
+    // Export Condition Node is not a default and is necessary to get
+    // uuid to select `rng.js` instead of `rng-browser.js`
+    nodeResolve({ exportConditions: ["node"] }),
     typescript({
       tsconfig: 'tsconfig.bundle.json',
     }),
