@@ -179,7 +179,7 @@
           "exec": "npm install"
         },
         {
-          "exec": "npm update @rollup/plugin-commonjs @rollup/plugin-json @rollup/plugin-node-resolve @types/aws-lambda @types/jest @types/lambda-log @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint eslint-config-prettier eslint-import-resolver-node eslint-import-resolver-typescript eslint-plugin-import eslint-plugin-prettier jest jest-junit json-schema npm-check-updates prettier rollup-plugin-node-externals rollup-plugin-terser rollup-plugin-typescript2 rollup standard-version ts-jest typescript @aws-sdk/client-s3 @aws-sdk/middleware-retry @aws-sdk/smithy-client get-stream lambda-log"
+          "exec": "npm update @rollup/plugin-commonjs @rollup/plugin-json @rollup/plugin-node-resolve @types/aws-lambda @types/jest @types/lambda-log @types/node @typescript-eslint/eslint-plugin @typescript-eslint/parser aws-sdk-client-mock eslint eslint-config-prettier eslint-import-resolver-node eslint-import-resolver-typescript eslint-plugin-import eslint-plugin-prettier jest jest-junit json-schema npm-check-updates prettier rollup-plugin-node-externals rollup-plugin-terser rollup-plugin-typescript2 rollup standard-version ts-jest typescript @aws-sdk/client-s3 get-stream lambda-log"
         },
         {
           "exec": "npx projen"

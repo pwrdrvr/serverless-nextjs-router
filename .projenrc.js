@@ -45,19 +45,14 @@ const project = new TypeScriptProject({
     '@rollup/plugin-node-resolve@^11.2.0',
     '@types/aws-lambda@^8.10.72',
     '@types/lambda-log@^2.2.0',
+    'aws-sdk-client-mock@^0.5.6',
     'rollup@^2.39.0',
     'rollup-plugin-node-externals@^2.2.0',
     'rollup-plugin-terser@^7.0.2',
     'rollup-plugin-typescript2@^0.30.0',
   ],
 
-  deps: [
-    '@aws-sdk/client-s3@^3.32.0',
-    '@aws-sdk/middleware-retry@^3.32.0',
-    '@aws-sdk/smithy-client@^3.32.0',
-    'get-stream@^6.0.0',
-    'lambda-log@^2.4.0',
-  ],
+  deps: ['@aws-sdk/client-s3@^3.32.0', 'get-stream@^6.0.0', 'lambda-log@^2.4.0'],
 
   // scripts: {
   //   'compile': 'rollup --config  && tsc -p tsconfig.build.json',

@@ -57,8 +57,8 @@ export function apigwyEventTocfRequestEvent(
       },
       domainName: config.s3BucketName,
       // We use AWS_REGION env var instead
-      region: 'dummy',
-      // region: config.s3.region,
+      // region: 'dummy',
+      region: config.region,
       path: '',
       // CF uses OAI to access S3 from Lambda @ Edge
       // But from Lambda we can just have IAM privs to get/put

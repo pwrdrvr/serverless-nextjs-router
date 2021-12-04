@@ -87,7 +87,7 @@ export async function handler(
 
       // Fall through to S3
       const cfEvent = apigwyEventTocfRequestEvent('origin-request', event, config);
-      const s3Response = await fetchFromS3(cfEvent.Records[0].cf.request, config);
+      const s3Response = await fetchFromS3(cfEvent.Records[0].cf.request, config, log);
 
       decodeResponse(s3Response);
 
@@ -121,6 +121,7 @@ export async function handler(
 
       // Convert API Gateway Request to Origin Request
       const cfEvent = apigwyEventTocfRequestEvent('origin-request', event, config);
+      log.info('apigwyEvent translated to CF Request', { event, cfEvent });
       const imageImport = './image-lambda';
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const imageHandler = await import(imageImport);
@@ -128,6 +129,7 @@ export async function handler(
       const cfRequestResponse = await imageHandler.handler(
         cfEvent as lambda.CloudFrontRequestEvent,
       );
+      log.info('apigwyEvent imageHandle response', { cfRequestResponse });
 
       // TODO: Do we ever need to proxy to s3 or does imageHandler always do it?
       // 2021-03-06 - Image optimizer does not currently save back to s3,
@@ -141,7 +143,10 @@ export async function handler(
       }
 
       // Translate the CF Response to API Gateway response
-      return cfResponseToapigwyResponse(cfRequestResponse);
+      const apigwyResponse = cfResponseToapigwyResponse(cfRequestResponse);
+      log.info('apigwyEvent imageHandle response', { apigwyResponse });
+
+      return apigwyResponse;
     } else {
       log.options.meta = { ...log.options.meta, route: 'default' };
       log.info('default route');
@@ -162,7 +167,7 @@ export async function handler(
         return cfResponseToapigwyResponse(cfRequestResponse);
       }
 
-      log.debug('got response from request handler', { cfRequestResult });
+      log.info('got response from request handler', { cfRequestResult });
 
       log.info('falling through to s3');
 
@@ -170,7 +175,7 @@ export async function handler(
       const cfRequestForOrigin = cfRequestResult as unknown as lambda.CloudFrontRequest;
 
       // Fall through to S3
-      const s3Response = await fetchFromS3(cfRequestForOrigin, config);
+      const s3Response = await fetchFromS3(cfRequestForOrigin, config, log);
 
       log.debug('got response from s3', { s3Response });
 
