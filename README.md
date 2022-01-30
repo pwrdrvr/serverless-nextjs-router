@@ -9,8 +9,25 @@ Component used by the [MicroApps framework](https://github.com/pwrdrvr/microapps
 # Table of Contents <!-- omit in toc -->
 
 - [Overview](#overview)
+- [Installation / CDK Constructs](#installation--cdk-constructs)
+- [Example Applications Using `serverless-nextjs-router`](#example-applications-using-serverless-nextjs-router)
 - [Setting Up New App](#setting-up-new-app)
 - [Motivations](#motivations)
+
+# Installation / CDK Constructs
+
+- `npm i --save-dev @pwrdrvr/serverless-nextjs-router`
+- Note: The module is used at runtime but only needed at build-time as the router file generally has to be copied into the output folder via a manual build step
+
+# Example Applications Using `serverless-nextjs-router`
+
+- Release App
+  - The Release app is an initial, rudimentary, release control console for setting the default version of an application with the [MicroApps framework](https://github.com/pwrdrvr/microapps-core)
+  - Built with Next.js
+  - [pwrdrvr/microapps-app-release](https://github.com/pwrdrvr/microapps-app-release)
+- Next.js Demo App
+  - The Next.js Tutorial application deployed as a MicroApp
+  - [pwrdrvr/serverless-nextjs-demo](https://github.com/pwrdrvr/serverless-nextjs-demo)
 
 # Setting Up New App
 
