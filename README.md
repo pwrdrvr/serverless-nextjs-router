@@ -1,10 +1,20 @@
+![Build/Deploy CI](https://github.com/pwrdrvr/serverless-nextjs-router/actions/workflows/build.yml/badge.svg) ![Release](https://github.com/pwrdrvr/serverless-nextjs-router/actions/workflows/release.yml/badge.svg)
+
 # Overview
 
 An extension of [serverless-next.js](https://github.com/serverless-nextjs/serverless-next.js) that allows running the Next.js application as AWS Lambda functions are the origin instead of using Lambda @ Edge.
 
+Component used by the [MicroApps framework](https://github.com/pwrdrvr/microapps-core), although the component can also be used without MicroApps.
+
+# Table of Contents <!-- omit in toc -->
+
+- [Overview](#overview)
+- [Setting Up New App](#setting-up-new-app)
+- [Motivations](#motivations)
+
 # Setting Up New App
 
-Honestly, the instructions are going to have to wait a bit after 2021-09-18 as there are other components being released, shortly, that make it easier to give an example of how to use this.
+[TBC] The instructions are going to have to wait a bit after 2022-01-30 as there are other components being released, shortly, that make it easier to give an example of how to use this.
 
 # Motivations
 
